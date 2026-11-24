@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-cs-obsidian: #111318;
+  --color-cs-carbon: #1e222b;
+  --color-cs-copper: #e86a14;
+  --color-cs-copper-bright: #f28529;
+  --color-cs-silver: #c4c8d0;
+  --color-cs-titanium: #646b7a;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    background-color: #ffffff;
+    color: #111318;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: #111318;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+}
+
+/* CS22 Light Ghost Glass Surfaces */
+.ghost-glass {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(248, 249, 251, 0.78) 100%
+  );
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(17, 19, 24, 0.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 12px 32px -18px rgba(17, 19, 24, 0.14);
+}
+
+.ghost-glass-interactive {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(248, 249, 252, 0.82) 100%
+  );
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(17, 19, 24, 0.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 10px 28px -16px rgba(17, 19, 24, 0.12);
+  transition:
+    transform 190ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 190ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 190ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ghost-glass-interactive:hover {
+  transform: translateY(-3px);
+  border-color: rgba(232, 106, 20, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 18px 38px -16px rgba(232, 106, 20, 0.16),
+    0 12px 28px -16px rgba(17, 19, 24, 0.12);
+}
+
+.ghost-glass-player {
+  background: linear-gradient(
+    160deg,
+    rgba(20, 23, 31, 0.96) 0%,
+    rgba(11, 13, 18, 0.98) 100%
+  );
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid rgba(17, 19, 24, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 24px 56px -22px rgba(17, 19, 24, 0.32);
+}
+
+.cs-ambient-bg {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(62% 42% at 50% -4%, rgba(232, 106, 20, 0.07) 0%, rgba(232, 106, 20, 0) 70%),
+    radial-gradient(45% 35% at 88% 10%, rgba(17, 19, 24, 0.03) 0%, rgba(17, 19, 24, 0) 70%),
+    radial-gradient(40% 30% at 12% 18%, rgba(232, 106, 20, 0.04) 0%, rgba(232, 106, 20, 0) 72%);
+}
+
+@keyframes cs-soft-pulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 10px 26px -8px rgba(232, 106, 20, 0.25);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      0 12px 32px -4px rgba(232, 106, 20, 0.42);
+  }
+}
+
+.cs-whatsapp-pulse {
+  animation: cs-soft-pulse 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .ghost-glass-interactive,
+  .ghost-glass-interactive:hover,
+  .cs-whatsapp-pulse {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}

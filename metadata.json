@@ -1,0 +1,6 @@
+{
+  "name": "Central de Ajuda CS22",
+  "description": "Plataforma oficial de tutoriais, treinamentos e suporte da CS22 — Tecnologia que move negócios.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
