@@ -30,6 +30,7 @@ export function VideoCard({ video, category, onOpenTutorial, stepNumber }: Video
             src={video.thumbnail}
             alt={video.title}
             loading="lazy"
+            decoding="async"
             referrerPolicy="no-referrer"
             onError={() => setImgError(true)}
             className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"

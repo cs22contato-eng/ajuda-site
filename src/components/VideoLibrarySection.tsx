@@ -1,4 +1,5 @@
-import { AlertCircle, ArrowUpDown, MessageCircle, RefreshCw, SearchX } from 'lucide-react';
+import { AlertCircle, ArrowUpDown, ChevronDown, MessageCircle, RefreshCw, SearchX } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { Category, SortOption, VideoTutorial } from '../types/helpCenter';
 import { buildWhatsAppLink } from '../utils/whatsapp';
 import { VideoCard } from './VideoCard';
@@ -36,6 +37,16 @@ export function VideoLibrarySection({
 }: VideoLibrarySectionProps) {
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
   const isFiltering = Boolean(searchQuery.trim()) || activeCategoryId !== 'all';
+  const [visibleLimit, setVisibleLimit] = useState<number>(12);
+
+  useEffect(() => {
+    setVisibleLimit(12);
+  }, [searchQuery, activeCategoryId, sortBy]);
+
+  const displayedVideos = isFiltering
+    ? filteredVideos
+    : filteredVideos.slice(0, visibleLimit);
+  const remainingCount = Math.max(0, filteredVideos.length - displayedVideos.length);
 
   const starterVideos = allVideos.filter((v) => v.starter).slice(0, 4);
   const mostAccessedVideos = [...allVideos]
@@ -249,16 +260,38 @@ export function VideoLibrarySection({
 
         {/* Videos Grid */}
         {!loading && !error && filteredVideos.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVideos.map((video) => (
-              <VideoCard
-                key={video.id}
-                video={video}
-                category={categoryMap.get(video.categoryId)}
-                onOpenTutorial={onOpenTutorial}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedVideos.map((video) => (
+                <VideoCard
+                  key={video.id}
+                  video={video}
+                  category={categoryMap.get(video.categoryId)}
+                  onOpenTutorial={onOpenTutorial}
+                />
+              ))}
+            </div>
+
+            {remainingCount > 0 && (
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setVisibleLimit((prev) => prev + 12)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-[#111318] shadow-sm hover:border-[#E86A14] hover:text-[#D95C0A] transition-colors cursor-pointer"
+                >
+                  <ChevronDown className="h-4 w-4 text-[#E86A14]" aria-hidden="true" />
+                  <span>Carregar mais tutoriais (restam {remainingCount})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVisibleLimit(filteredVideos.length)}
+                  className="inline-flex items-center justify-center rounded-xl border border-transparent px-4 py-3 text-xs sm:text-sm font-medium text-[#4A505E] hover:text-[#111318] transition-colors cursor-pointer"
+                >
+                  Ver todos os {filteredVideos.length}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

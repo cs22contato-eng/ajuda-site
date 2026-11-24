@@ -7,6 +7,7 @@ import { HeroSearch } from './components/HeroSearch';
 import { LearningTrailsSection } from './components/LearningTrailsSection';
 import { TutorialPage } from './components/TutorialPage';
 import { VideoLibrarySection } from './components/VideoLibrarySection';
+import { INITIAL_CATALOG_DATA } from './data/meuerpwebSeed';
 import type { CatalogData, SortOption } from './types/helpCenter';
 import { filterAndSortVideos, summarizeDescription } from './utils/catalogLogic';
 
@@ -23,12 +24,20 @@ function readCompletedIds(): string[] {
   }
 }
 
+function safeScrollToTop(smooth = true) {
+  try {
+    window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+  } catch {
+    window.scrollTo(0, 0);
+  }
+}
+
 export default function App() {
   const [pathname, setPathname] = useState<string>(() =>
     typeof window !== 'undefined' ? window.location.pathname : '/'
   );
-  const [catalog, setCatalog] = useState<CatalogData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [catalog, setCatalog] = useState<CatalogData>(INITIAL_CATALOG_DATA);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,21 +48,21 @@ export default function App() {
   );
 
   const loadCatalog = useCallback(async () => {
-    setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/catalog');
-      if (!res.ok) {
-        throw new Error('Não foi possível carregar os tutoriais no momento.');
+      const res = await fetch('/api/catalog', {
+        headers: { Accept: 'application/json' },
+      });
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || !contentType.includes('application/json')) {
+        return;
       }
       const data = (await res.json()) as CatalogData;
-      setCatalog(data);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Erro inesperado ao carregar a biblioteca de tutoriais.'
-      );
+      if (data && Array.isArray(data.videos) && data.videos.length > 0) {
+        setCatalog(data);
+      }
+    } catch {
+      // Keep bundled INITIAL_CATALOG_DATA if network is slow or offline on mobile
     } finally {
       setLoading(false);
     }
@@ -84,7 +93,7 @@ export default function App() {
         document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' });
       }, 60);
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      safeScrollToTop(true);
     }
   }, []);
 

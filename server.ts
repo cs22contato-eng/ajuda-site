@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import dotenv from 'dotenv';
 import express, { type Request, type Response } from 'express';
-import { createServer as createViteServer } from 'vite';
 import { INITIAL_CATALOG_DATA } from './src/data/meuerpwebSeed';
 import type { CatalogData } from './src/types/helpCenter';
 import { deduplicateVideos, summarizeDescription } from './src/utils/catalogLogic';
@@ -14,20 +13,35 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 const DATA_DIR = path.resolve(process.cwd(), 'data');
 const STORE_PATH = path.join(DATA_DIR, 'catalog.json');
 
+let memoryStore: CatalogData | null = null;
+
+function createSeedCatalog(): CatalogData {
+  return {
+    ...INITIAL_CATALOG_DATA,
+    videos: INITIAL_CATALOG_DATA.videos.map((v) => ({ ...v })),
+    categories: INITIAL_CATALOG_DATA.categories.map((c) => ({ ...c })),
+    trails: INITIAL_CATALOG_DATA.trails.map((t) => ({ ...t })),
+    youtubeIntegration: {
+      ...INITIAL_CATALOG_DATA.youtubeIntegration,
+      apiConfigured: true,
+    },
+  };
+}
+
 function ensureStore(): CatalogData {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(STORE_PATH)) {
-    const initial: CatalogData = {
-      ...INITIAL_CATALOG_DATA,
-      youtubeIntegration: {
-        ...INITIAL_CATALOG_DATA.youtubeIntegration,
-        apiConfigured: true,
-      },
-    };
-    fs.writeFileSync(STORE_PATH, JSON.stringify(initial, null, 2), 'utf8');
-    return initial;
-  }
+  if (memoryStore) return memoryStore;
   try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    if (!fs.existsSync(STORE_PATH)) {
+      const initial = createSeedCatalog();
+      try {
+        fs.writeFileSync(STORE_PATH, JSON.stringify(initial, null, 2), 'utf8');
+      } catch {
+        // Read-only filesystem fallback
+      }
+      memoryStore = initial;
+      return initial;
+    }
     const raw = fs.readFileSync(STORE_PATH, 'utf8');
     const parsed = JSON.parse(raw) as CatalogData;
     parsed.videos = deduplicateVideos(parsed.videos || []);
@@ -35,19 +49,25 @@ function ensureStore(): CatalogData {
       ...INITIAL_CATALOG_DATA.youtubeIntegration,
       apiConfigured: true,
     };
+    memoryStore = parsed;
     return parsed;
   } catch {
-    const fallback = { ...INITIAL_CATALOG_DATA };
-    fs.writeFileSync(STORE_PATH, JSON.stringify(fallback, null, 2), 'utf8');
+    const fallback = createSeedCatalog();
+    memoryStore = fallback;
     return fallback;
   }
 }
 
 function saveStore(data: CatalogData): void {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  const tempPath = `${STORE_PATH}.tmp`;
-  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf8');
-  fs.renameSync(tempPath, STORE_PATH);
+  memoryStore = data;
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    const tempPath = `${STORE_PATH}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf8');
+    fs.renameSync(tempPath, STORE_PATH);
+  } catch {
+    // Keep updated data in memoryStore if filesystem is read-only
+  }
 }
 
 function resolveBaseUrl(req: Request): string {
@@ -238,6 +258,7 @@ async function startServer() {
   app.use(express.static(path.resolve(process.cwd(), 'public')));
 
   if (!IS_PROD) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'custom',
